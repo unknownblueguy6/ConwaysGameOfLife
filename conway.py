@@ -1,4 +1,4 @@
-import pygame, sys, platform
+import pygame, sys, copy, platform
 from pygame.locals import *
 
 CELL_SIZE = 10
@@ -12,6 +12,7 @@ ALIVE = True
 
 DEAD_COLOUR = WHITE = (255, 255, 255)
 ALIVE_COLOUR = BLACK = (0, 0, 0)
+GREY = (226, 230, 222)
 
 class Cell:
 	size = CELL_SIZE
@@ -33,6 +34,7 @@ class Cell:
 
 	def draw(self):
 		pygame.draw.rect(windowSurface, self.colour, self.rect)
+		pygame.draw.rect(windowSurface, GREY, self.rect, 1)
 
 grid = []
 
@@ -57,44 +59,35 @@ def convertCoord(x, y):
 
 def update():
 	global grid
-	gridCopy = grid
-	
-	for i in range(len(gridCopy)):
-		for j in range(len(gridCopy[i])):
-			if i == 10 and j == 10:
-				print(gridCopy[i][j].state)
+	for row in grid:
+		for cell in row:
+			cell.draw()
+	gridCopy = copy.deepcopy(grid)
+
+	for i in range(len(grid)):
+		for j in range(len(grid[i])):
 
 			alive = 0
 			
 			for k in range(i-1, i+2):
-				if k == -1:
-					k+=1
-				if k == len(gridCopy):
-					k-=1
+				if k == -1 or k == len(grid):
+					continue
 					
 				for l in range(j-1, j+2):
-					if l == -1:
-						l+=1
-					if l == len(gridCopy[i]):
-						l-=1
-					if k == l : 
+					if (l == -1) or (l == len(grid[i])) or (k == i and l == j): 
 						continue
+
 					if grid[k][l].state == ALIVE:
 						alive += 1
-			
+
 			if grid[i][j].state == ALIVE:
-				if (alive != 2) or (alive != 3):
+				if not((alive == 2) or (alive == 3)):
 					gridCopy[i][j].deactivate()
-			
 			else:
 				if alive == 3:
 					gridCopy[i][j].activate()
-	
-	grid = gridCopy
 
-	for row in grid:
-		for cell in row:
-			cell.draw()
+	grid = copy.deepcopy(gridCopy)
 
 def exit():
 	pygame.quit()
@@ -102,6 +95,9 @@ def exit():
 
 init()
 
+#glider, just for testing
+grid[10][8].activate()
+grid[11][9].activate()
 grid[10][10].activate()
 grid[11][11].activate()
 grid[12][10].activate()
@@ -109,18 +105,9 @@ grid[12][11].activate()
 grid[11][12].activate()	
 
 
-# for row in grid:
-# 	for cell in row:
-# 		cell.draw()
-# pygame.display.update()
-# mainClock.tick(1)
-
 while True:
 	update()
 	pygame.display.update()
-	for cell in grid[30]:
-		if (cell.state):
-			print('oh yeah')
-	mainClock.tick(1)
+	mainClock.tick(10)
 
 exit()
