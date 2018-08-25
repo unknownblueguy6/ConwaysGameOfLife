@@ -1,4 +1,4 @@
-import pygame, sys, copy, platform
+import pygame, sys, pickle, platform
 from timeit import default_timer as timer
 from pygame.locals import *
 
@@ -9,8 +9,8 @@ WINDOWWIDTH = CELLS_PER_COL*CELL_SIZE
 WINDOWHEIGHT = CELLS_PER_ROW*CELL_SIZE + 2*CELL_SIZE
 
 
-MAX_CELLS_PER_ROW = 100 + 1
-MAX_CELLS_PER_COL = 100 + 1
+MAX_CELLS_PER_ROW = 1000 + 1
+MAX_CELLS_PER_COL = 1000 + 1
 DEAD = False
 ALIVE = True
 
@@ -19,6 +19,7 @@ ALIVE_COLOUR = BLACK = (0, 0, 0)
 GREY = (226, 230, 222)
 
 grid = []
+liveCells = set()
 
 def init():
 	pygame.init()
@@ -37,65 +38,52 @@ def init():
 
 def getCell(x, y):
 	global grid
-	return grid[x+int(MAX_CELLS_PER_ROW/2)][y+int(MAX_CELLS_PER_COL/2)]
+	return grid[x + MAX_CELLS_PER_ROW//2][y + MAX_CELLS_PER_COL//2]
 
 def changeState(x, y):
 	global grid
-	grid[x+int(MAX_CELLS_PER_ROW/2)][y+int(MAX_CELLS_PER_COL/2)] = not(grid[x+int(MAX_CELLS_PER_ROW/2)][y+int(MAX_CELLS_PER_COL/2)])
+	grid[x + MAX_CELLS_PER_ROW//2][y + MAX_CELLS_PER_COL//2] = not(grid[x + MAX_CELLS_PER_ROW//2][y + MAX_CELLS_PER_COL//2])
 
 def drawCell(x, y):
 	if(getCell(x,y) == ALIVE):
 		colour = ALIVE_COLOUR
 	else:
 		colour = DEAD_COLOUR
-	pygame.draw.rect(windowSurface, colour, pygame.Rect((x+int(CELLS_PER_ROW/2))* CELL_SIZE, (y+int(CELLS_PER_COL/2)) * CELL_SIZE, CELL_SIZE, CELL_SIZE))
-	pygame.draw.rect(windowSurface, GREY, pygame.Rect((x+int(CELLS_PER_ROW/2))* CELL_SIZE, (y+int(CELLS_PER_COL/2)) * CELL_SIZE, CELL_SIZE, CELL_SIZE), 1)
+	pygame.draw.rect(windowSurface, colour, pygame.Rect((x + CELLS_PER_ROW//2)* CELL_SIZE, (y + CELLS_PER_COL//2) * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+	pygame.draw.rect(windowSurface, GREY, pygame.Rect((x + CELLS_PER_ROW//2)* CELL_SIZE, (y + CELLS_PER_COL//2) * CELL_SIZE, CELL_SIZE, CELL_SIZE), 1)
 
-def getX():
-	global grid
-	x1 = MAX_CELLS_PER_ROW
+def getCoords():
+	global liveCells
+	x1 =  MAX_CELLS_PER_ROW
 	x2 = -MAX_CELLS_PER_ROW
-	for i in range(-int(MAX_CELLS_PER_ROW/2), int(MAX_CELLS_PER_ROW/2) + 1):
-		for j in range(-int(MAX_CELLS_PER_COL/2), int(MAX_CELLS_PER_COL/2) + 1):
-			if getCell(i, j) == ALIVE :
-				if i < x1:
-					x1 = i
-				if i > x2:
-					x2 = i
-	return x1 - 1, x2 + 2
-
-def getY():
-	global grid
-	y1 = MAX_CELLS_PER_COL
+	y1 =  MAX_CELLS_PER_COL
 	y2 = -MAX_CELLS_PER_COL
-	for i in range(-int(MAX_CELLS_PER_ROW/2), int(MAX_CELLS_PER_ROW/2) + 1):
-		for j in range(-int(MAX_CELLS_PER_COL/2), int(MAX_CELLS_PER_COL/2) + 1):
-			if getCell(i, j) == ALIVE :
-				if j < y1:
-					y1 = j
-				if j > y2:
-					y2 = j
-	return y1 - 1, y2 + 2
+	for x,y in liveCells:
+		if x < x1:
+			x1 = x
+		if x > x2:
+			x2 = x
+		if y < y1:
+			y1 = y
+		if y > y2:
+			y2 = y
+	return x1- 1, x2 + 2, y1 - 1, y2 + 2
 
 def update():
-	
+	start = timer()
 	global grid
-	
-	for i in range(-int(CELLS_PER_ROW/2), int(CELLS_PER_ROW/2) + 1):
-		for j in range(-int(CELLS_PER_COL/2), int(CELLS_PER_COL/2) + 1):
+	global liveCells
+	for i in range(-CELLS_PER_ROW//2, CELLS_PER_ROW//2 + 1):
+		for j in range(-CELLS_PER_COL//2, CELLS_PER_COL//2 + 1):
 			drawCell(i, j)
 	
-	gridCopy = copy.deepcopy(grid)
+	gridCopy = pickle.loads(pickle.dumps(grid))
+	liveCellsCopy = pickle.loads(pickle.dumps(liveCells))
 
-	start = timer()
-	x1, x2 = getX()
-	y1, y2 = getY()
-	end = timer()
+	
+	x1, x2, y1, y2 = getCoords()
+	
 
-	print(end - start)
-	
-	#print("%s,%s %s,%s" % (x1,y1, x2,y2))
-	
 	for i in range(x1, x2):
 		for j in range(y1, y2):
 
@@ -106,21 +94,26 @@ def update():
 					continue
 					
 				for l in range(j-1, j+2):
-					if (l == -1 + -int(MAX_CELLS_PER_COL/2)) or (l == int(MAX_CELLS_PER_COL/2) + 1) or (k == i and l == j): 
+					if (l == -1 + -MAX_CELLS_PER_COL//2) or (l == MAX_CELLS_PER_COL//2 + 1) or (k == i and l == j): 
 						continue
 
-					if getCell(k, l) == ALIVE:
+					if (k, l) in liveCells:
 						alive += 1
 
 			if getCell(i, j) == ALIVE:
 				if not((alive == 2) or (alive == 3)):
-					gridCopy[i + int(MAX_CELLS_PER_ROW/2)][j + int(MAX_CELLS_PER_COL/2)] = False
+					gridCopy[i + MAX_CELLS_PER_ROW//2][j + MAX_CELLS_PER_COL//2] = False
+					liveCellsCopy.remove((i, j))
 			else:
 				if alive == 3:
-					gridCopy[i + int(MAX_CELLS_PER_ROW/2)][j + int(MAX_CELLS_PER_COL/2)] = True
+					gridCopy[i + MAX_CELLS_PER_ROW//2][j + MAX_CELLS_PER_COL//2] = True
+					liveCellsCopy.add((i, j))
+	grid = pickle.loads(pickle.dumps(gridCopy))
+	liveCells = pickle.loads(pickle.dumps(liveCellsCopy))
 
-	grid = copy.deepcopy(gridCopy)
+	end = timer()
 
+	print(end - start)
 def exit():
 	pygame.quit()
 	sys.exit()
@@ -135,11 +128,17 @@ changeState(1,1)
 changeState(2,0)
 changeState(2,1)
 changeState(1,2)
+liveCells.add((0, 0))
+liveCells.add((1, 1))
+liveCells.add((2, 0))
+liveCells.add((2, 1))
+liveCells.add((1, 2))
+
 
 # getCell(0, 0) = True
 
-# for i in range(-int(CELLS_PER_ROW/2), int(CELLS_PER_ROW/2) + 1):
-# 	for j in range(-int(CELLS_PER_COL/2), int(CELLS_PER_COL/2) + 1):
+# for i in range(-CELLS_PER_ROW//2, CELLS_PER_ROW//2 + 1):
+# 	for j in range(-CELLS_PER_COL//2, CELLS_PER_COL//2 + 1):
 # 		getCell(i, j).draw()
 # pygame.display.update()
 
