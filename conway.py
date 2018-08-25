@@ -1,5 +1,5 @@
 import pygame, sys, pickle, platform
-from timeit import default_timer as timer
+# from timeit import default_timer as timer
 from pygame.locals import *
 
 CELL_SIZE = 9
@@ -33,7 +33,7 @@ def init():
 	for i in range(MAX_CELLS_PER_ROW):
 		grid.append([])
 		for j in range(MAX_CELLS_PER_COL):
-			grid[i].append(False)
+			grid[i].append(DEAD)
 
 
 def getCell(x, y):
@@ -70,7 +70,7 @@ def getCoords():
 	return x1- 1, x2 + 2, y1 - 1, y2 + 2
 
 def update():
-	start = timer()
+	# start = timer()
 	global grid
 	global liveCells
 	for i in range(-CELLS_PER_ROW//2, CELLS_PER_ROW//2 + 1):
@@ -90,7 +90,7 @@ def update():
 			alive = 0
 			
 			for k in range(i-1, i+2):
-				if k == -1 or k == len(grid):
+				if k == -1 + -MAX_CELLS_PER_ROW//2 or k == MAX_CELLS_PER_ROW//2 + 1:
 					continue
 					
 				for l in range(j-1, j+2):
@@ -102,45 +102,39 @@ def update():
 
 			if getCell(i, j) == ALIVE:
 				if not((alive == 2) or (alive == 3)):
-					gridCopy[i + MAX_CELLS_PER_ROW//2][j + MAX_CELLS_PER_COL//2] = False
+					gridCopy[i + MAX_CELLS_PER_ROW//2][j + MAX_CELLS_PER_COL//2] = DEAD
 					liveCellsCopy.remove((i, j))
 			else:
 				if alive == 3:
-					gridCopy[i + MAX_CELLS_PER_ROW//2][j + MAX_CELLS_PER_COL//2] = True
+					gridCopy[i + MAX_CELLS_PER_ROW//2][j + MAX_CELLS_PER_COL//2] = ALIVE
 					liveCellsCopy.add((i, j))
 	grid = pickle.loads(pickle.dumps(gridCopy))
 	liveCells = pickle.loads(pickle.dumps(liveCellsCopy))
 
-	end = timer()
+	# end = timer()
 
-	print(end - start)
+	#print(end - start)
 def exit():
 	pygame.quit()
 	sys.exit()
 
 init()
 
-#glider, just for testing
-# grid[10][8] = True
-# grid[11][9] = True
+#just for testing
+changeState(0, -2)
+changeState(1, -1)
 changeState(0,0)
 changeState(1,1)
 changeState(2,0)
 changeState(2,1)
 changeState(1,2)
+liveCells.add((0, -2))
+liveCells.add((1, -1))
 liveCells.add((0, 0))
 liveCells.add((1, 1))
 liveCells.add((2, 0))
 liveCells.add((2, 1))
 liveCells.add((1, 2))
-
-
-# getCell(0, 0) = True
-
-# for i in range(-CELLS_PER_ROW//2, CELLS_PER_ROW//2 + 1):
-# 	for j in range(-CELLS_PER_COL//2, CELLS_PER_COL//2 + 1):
-# 		getCell(i, j).draw()
-# pygame.display.update()
 
 while True:
 	update()
