@@ -2,7 +2,7 @@ import pygame, sys, pickle, platform
 # from timeit import default_timer as timer
 from pygame.locals import *
 
-CELL_SIZE = 9
+CELL_SIZE = 10
 CELLS_PER_ROW = 50+1
 CELLS_PER_COL = 50+1
 WINDOWWIDTH = CELLS_PER_COL*CELL_SIZE
@@ -17,7 +17,12 @@ ALIVE = True
 DEAD_COLOUR = WHITE = (255, 255, 255)
 ALIVE_COLOUR = BLACK = (0, 0, 0)
 GREY = (226, 230, 222)
+BLUE = (0, 0, 255)
 
+EDIT = 0
+RUN = 1
+
+gameState = EDIT
 grid = []
 liveCells = set()
 
@@ -42,7 +47,14 @@ def getCell(x, y):
 
 def changeState(x, y):
 	global grid
-	grid[x + MAX_CELLS_PER_ROW//2][y + MAX_CELLS_PER_COL//2] = not(grid[x + MAX_CELLS_PER_ROW//2][y + MAX_CELLS_PER_COL//2])
+	global liveCells
+	state = grid[x + MAX_CELLS_PER_ROW//2][y + MAX_CELLS_PER_COL//2]
+	if state == ALIVE : 
+		grid[x + MAX_CELLS_PER_ROW//2][y + MAX_CELLS_PER_COL//2] = not state
+		liveCells.remove((x, y))
+	else:
+		grid[x + MAX_CELLS_PER_ROW//2][y + MAX_CELLS_PER_COL//2] = not state
+		liveCells.add((x, y))
 
 def drawCell(x, y):
 	if(getCell(x,y) == ALIVE):
@@ -69,13 +81,45 @@ def getCoords():
 			y2 = y
 	return x1- 1, x2 + 2, y1 - 1, y2 + 2
 
+
+def drawGrid():
+	global grid
+	for i in range(-CELLS_PER_ROW//2, CELLS_PER_ROW//2 + 1):
+		for j in range(-CELLS_PER_COL//2, CELLS_PER_COL//2 + 1):
+			drawCell(i, j)
+
+
+def edit():
+	global gameState
+	x, y = 0, 0
+	while True:
+		for event in pygame.event.get():
+			if event.type == KEYDOWN:
+				if event.key == K_LEFT and x != -CELLS_PER_ROW//2:
+					x -= 1
+				elif event.key == K_RIGHT and x != CELLS_PER_ROW//2:
+					x += 1
+				elif event.key == K_DOWN and y != CELLS_PER_COL//2:
+					y += 1
+				elif event.key == K_UP and y != -CELLS_PER_COL//2: 
+					y -= 1
+				elif event.key == K_s:
+					changeState(x, y)
+				elif event.key == K_SPACE or event.key == K_RETURN:
+					gameState = RUN
+					return
+		drawGrid()
+		pygame.draw.rect(windowSurface, BLUE, pygame.Rect((x + CELLS_PER_ROW//2)* CELL_SIZE, (y + CELLS_PER_COL//2) * CELL_SIZE, CELL_SIZE, CELL_SIZE), 2)
+		pygame.display.update()
+
+
+
+
 def update():
 	# start = timer()
 	global grid
 	global liveCells
-	for i in range(-CELLS_PER_ROW//2, CELLS_PER_ROW//2 + 1):
-		for j in range(-CELLS_PER_COL//2, CELLS_PER_COL//2 + 1):
-			drawCell(i, j)
+	drawGrid()
 	
 	gridCopy = pickle.loads(pickle.dumps(grid))
 	liveCellsCopy = pickle.loads(pickle.dumps(liveCells))
@@ -121,23 +165,18 @@ def exit():
 init()
 
 #just for testing
-changeState(0, -2)
-changeState(1, -1)
 changeState(0,0)
 changeState(1,1)
 changeState(2,0)
 changeState(2,1)
 changeState(1,2)
-liveCells.add((0, -2))
-liveCells.add((1, -1))
-liveCells.add((0, 0))
-liveCells.add((1, 1))
-liveCells.add((2, 0))
-liveCells.add((2, 1))
-liveCells.add((1, 2))
+
 
 while True:
-	update()
+	if(gameState == EDIT):
+		edit()
+	elif(gameState == RUN):
+		update()
 	pygame.display.update()
 	mainClock.tick(1000)
 
