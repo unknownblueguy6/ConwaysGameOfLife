@@ -7,10 +7,13 @@ CELLS_PER_COL = 50+1
 WINDOWWIDTH = CELLS_PER_COL*CELL_SIZE
 WINDOWHEIGHT = CELLS_PER_ROW*CELL_SIZE +  2*CELL_SIZE
 
-DEAD_COLOUR = WHITE = (255, 255, 255)
-ALIVE_COLOUR = BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
 GREY = (226, 230, 222)
 BLUE = (0, 0, 255)
+
+DEAD_COLOUR = WHITE
+ALIVE_COLOUR = BLACK
 
 liveCells = set()
 
@@ -43,6 +46,7 @@ def drawGrid():
 	for i in range(-CELLS_PER_ROW//2, CELLS_PER_ROW//2 + 1):
 		for j in range(-CELLS_PER_COL//2, CELLS_PER_COL//2 + 1):
 			drawCell(i, j)
+	pygame.draw.line(windowSurface, GREY, (0, CELLS_PER_COL * CELL_SIZE), (WINDOWWIDTH, CELLS_PER_COL * CELL_SIZE), 1)
 
 def exit():
 	pygame.quit()
