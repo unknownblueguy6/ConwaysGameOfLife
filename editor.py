@@ -13,9 +13,9 @@ def edit():
 
 	TAP_TIMER = 150
 	
-	r_time = l_time = u_time = d_time = TAP_TIMER
+	r_time = l_time = u_time = d_time = cell_time = TAP_TIMER
 
-	r_tap = l_tap =  u_tap = d_tap = True
+	r_tap = l_tap =  u_tap = d_tap = cell_tap = True
 	
 	getTicksLastFrame = gui.pygame.time.get_ticks()
 
@@ -90,8 +90,18 @@ def edit():
 				u_tap = False
 			y_dir = -1
 		
+		if not keys[gui.K_s]:
+			if cell_tap and cell_time != TAP_TIMER:
+				gui.changeState(x, y)
+			if not cell_tap:
+				cell_tap = True			
+			cell_time = TAP_TIMER
+
 		if keys[gui.K_s]:
-			gui.changeState(x, y)
+			cell_time -= dt
+			if(cell_time <= 0):
+				cell_time = TAP_TIMER
+				cell_tap = False
 		
 		if keys[gui.K_SPACE] or keys[gui.K_RETURN]:
 			gameState = RUN
@@ -104,6 +114,9 @@ def edit():
 
 		if not u_tap or not d_tap:
 			y += y_dir
+
+		if not cell_tap:
+			gui.liveCells.add((x, y))
 		
 		if x <= -gui.CELLS_PER_ROW//2:
 			x = -gui.CELLS_PER_ROW//2 + 1
