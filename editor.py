@@ -26,6 +26,11 @@ def edit():
 		getTicksLastFrame = t
 		
 		gui.pygame.event.pump()
+
+		mb1 , mb3, mb2 = gui.pygame.mouse.get_pressed()
+
+		if mb1:
+		 	print(gui.pygame.mouse.get_pos())
 		
 		keys = gui.pygame.key.get_pressed()
 		
@@ -126,6 +131,10 @@ def edit():
 			y = -gui.CELLS_PER_COL//2 + 1
 		elif y >= gui.CELLS_PER_COL//2:
 			y = gui.CELLS_PER_COL//2
+
+		
+
+
 
 		gui.drawGrid()
 		gui.pygame.draw.rect(gui.windowSurface, gui.BLUE, gui.pygame.Rect((x + gui.CELLS_PER_ROW//2)* gui.CELL_SIZE, (y + gui.CELLS_PER_COL//2) * gui.CELL_SIZE, gui.CELL_SIZE, gui.CELL_SIZE), 2)

@@ -53,8 +53,8 @@ while True:
 	if(editor.gameState == editor.RUN):
 		update()
 	for event in gui.pygame.event.get():
-		if event.type == gui.QUIT:
-			break
+		if event.type == gui.QUIT or (event.type == gui.KEYDOWN and event.key == gui.K_ESCAPE):
+			gui.exit()
 	gui.pygame.display.update()
 	gui.mainClock.tick(FPS)
 
