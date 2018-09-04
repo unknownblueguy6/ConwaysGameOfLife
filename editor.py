@@ -6,10 +6,17 @@ RUN = 1
 gameState = EDIT
 liveCells = set()
 
+# def convertCoords(coords):
+# 	x, y = coords
+# 	x -= 
+
+
 def edit():
 	global gameState
 	
 	x, y = 0, 0
+
+	m_x, m_y = 0, 0
 
 	TAP_TIMER = 150
 	
@@ -28,12 +35,13 @@ def edit():
 		gui.pygame.event.pump()
 
 		mb1 , mb3, mb2 = gui.pygame.mouse.get_pressed()
-
-		if mb1:
-		 	print(gui.pygame.mouse.get_pos())
 		
 		keys = gui.pygame.key.get_pressed()
 		
+		if mb1:
+		# 	m_x, m_y = convertCoords(gui.pygame.mouse.get_pos())
+		# 	print(m_x, m_y)
+
 		if not keys[gui.K_RIGHT]:
 			if r_tap and r_time != TAP_TIMER:
 				x += 1
@@ -66,6 +74,12 @@ def edit():
 			y_dir = 0			
 			u_time = TAP_TIMER  
 
+		if not keys[gui.K_s]:
+			if cell_tap and cell_time != TAP_TIMER:
+				gui.changeState(x, y)
+			if not cell_tap:
+				cell_tap = True			
+			cell_time = TAP_TIMER
 
 		if keys[gui.K_RIGHT]:
 			r_time -= dt
@@ -95,12 +109,6 @@ def edit():
 				u_tap = False
 			y_dir = -1
 		
-		if not keys[gui.K_s]:
-			if cell_tap and cell_time != TAP_TIMER:
-				gui.changeState(x, y)
-			if not cell_tap:
-				cell_tap = True			
-			cell_time = TAP_TIMER
 
 		if keys[gui.K_s]:
 			cell_time -= dt
@@ -131,10 +139,6 @@ def edit():
 			y = -gui.CELLS_PER_COL//2 + 1
 		elif y >= gui.CELLS_PER_COL//2:
 			y = gui.CELLS_PER_COL//2
-
-		
-
-
 
 		gui.drawGrid()
 		gui.pygame.draw.rect(gui.windowSurface, gui.BLUE, gui.pygame.Rect((x + gui.CELLS_PER_ROW//2)* gui.CELL_SIZE, (y + gui.CELLS_PER_COL//2) * gui.CELL_SIZE, gui.CELL_SIZE, gui.CELL_SIZE), 2)
